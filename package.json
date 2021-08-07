@@ -1,0 +1,19 @@
+{
+  "name": "paperchaser",
+  "version": "1.0.0",
+  "description": "Google Drive crawling script to enumerate shared-by-link files.",
+  "main": "paperchaser.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "mandatory",
+  "license": "MIT",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "commander": "^8.0.0",
+    "json2csv": "^5.0.6",
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.9",
+    "uuid": "^8.3.2"
+  }
+}
