@@ -240,7 +240,6 @@ async function get_folder_children(folder_id, config) {
 	https://developers.google.com/drive/api/v2/reference/children/list
 */
 async function _get_folder_children(folder_id, page_token, config) {
-	console.log(`Getting children for folder "${folder_id}", with token "${page_token}"...`)
 	var query_params = {
 		'maxResults': 1000,
 		'orderBy': ['folder', 'modifiedDate', 'createdDate'].join(','),
@@ -326,8 +325,12 @@ async function add_drive_file_data(return_data, drive_id, config) {
 				drive_id,
 				config
 			);
-			// TODO: Support links
-			return_data.links = [];
+
+			// Pull out sub-folder item link(s)
+			return_data.links = return_data.body.map(item_in_folder => {
+				return `https://drive.google.com/open?id=${item_in_folder.id}`;
+			});
+
 			break;
 	}
 
