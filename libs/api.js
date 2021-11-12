@@ -195,6 +195,12 @@ async function get_drive_file_metadata(drive_id, config) {
 			'headers': get_base_headers(config),
 		}
 	});
+
+	if(response.statusCode !== 200) {
+		console.log(`[NOTICE] Issue while retrieving metadata for Drive file ID ${drive_id}. Got unexpected ${response.statusCode} status code.`);
+		return null;
+	}
+
 	return response.body;
 }
 
@@ -369,6 +375,10 @@ async function get_drive_file_data(drive_id, config) {
 
 	// Get metadata for Drive file
 	return_data.metadata = await get_drive_file_metadata(drive_id, config);
+
+	if(return_data.metadata === null) {
+		return null;
+	}
 
 	// If there is a retrievable data structure for the Drive File
 	// (e.g. Google Docs/Sheets/Slides), then pull that data as well.

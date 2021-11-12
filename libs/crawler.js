@@ -62,6 +62,12 @@ async function crawl(seed_ids, config, initial_ids_to_crawl_queue, initial_alrea
 			crawl_canidate_id,
 			config
 		);
+
+		if(drive_file_data === null) {
+			already_crawled_ids.add(crawl_canidate_id);
+			continue
+		}
+
 		const drive_file_links = drive_file_data.links;
 
 		// Append new data to CSV spreadsheet
@@ -82,7 +88,7 @@ async function crawl(seed_ids, config, initial_ids_to_crawl_queue, initial_alrea
 
 		// Add newly-enumerated ID(s) to the crawl queue
 		new_drive_ids.map(drive_id => {
-			if(!ids_to_crawl_queue.includes(drive_id)) {
+			if(!ids_to_crawl_queue.includes(drive_id) && !already_crawled_ids.has(drive_id)) {
 				ids_to_crawl_queue.unshift(drive_id);
 			}
 		});
