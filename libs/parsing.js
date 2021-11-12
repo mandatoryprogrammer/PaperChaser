@@ -122,7 +122,7 @@ function get_all_drive_file_links(drive_item_data, native_link_selectors, text_e
 */
 function get_ids_from_urls(input_url_array) {
     var drive_ids = input_url_array.map(url => {
-        if(typeof(url) !== 'string') {
+        if(typeof(url) !== 'string' || url.trim() == '') {
             return null;
         }
 
