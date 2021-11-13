@@ -111,11 +111,13 @@ function get_csv_row_object_from_metadata(input_metadata) {
 
 	const permissions = `${input_metadata.userPermission.id}:${input_metadata.userPermission.role}`;
 
-	const owners = input_metadata.owners.map(owner_metadata => {
+	const owners = input_metadata.owners ? input_metadata.owners.map(owner_metadata => {
 		const owner_email = owner_metadata.emailAddress ? owner_metadata.emailAddress : '';
 		const owner_name = owner_metadata.displayName ? `(${owner_metadata.displayName})` : '';
 		return `${owner_email} ${owner_name}`;
-	}).join("; ");
+	}).join("; ") : [];
+
+	console.log(`[STATUS] Appending "${input_metadata.title}" to CSV...`)
 
 	return {
 		title: input_metadata.title,

@@ -15,6 +15,17 @@ const parser = require('./parsing.js');
 async function request(options) {
 	const response = await _request(options);
 
+	// Check response buffer size, if it's too big we can't
+	// actually handle it and need to reject it due to max Node string sizes.
+	if(response.body.length > 0x3fffffe6) {
+		return Promise.reject({"error": "RESPONSE_TOO_LARGE"})
+	}
+
+	// Convert to JSON if it's JSON
+	try {
+		response.body = JSON.parse(response.body)
+	} catch(e){}
+
 	// Check response for invalid access token error
 	const access_token_expired = is_invalid_access_token_response(response);
 
@@ -32,6 +43,13 @@ function get_base_request_options(config) {
 		'strictSSL': false,
 		'simple': false,
 		'resolveWithFullResponse': true,
+		'gzip': true,
+		// We need a raw response body in case
+		// the result is BIG. If we confirm it's smol
+		// then we can convert to a string otherwise
+		// request will crash:
+		// https://stackoverflow.com/a/66773025/1195812
+		'encoding': null,
 	}
 }
 
@@ -143,7 +161,6 @@ async function get_google_doc(document_id, config) {
 		...get_base_request_options(config),
 		...{
 			'url': `https://docs.googleapis.com/v1/documents/${document_id}`,
-			'json': true,
 			'headers': get_base_headers(config),
 		}
 	});
@@ -159,7 +176,6 @@ async function get_google_sheet(sheet_id, config) {
 		...get_base_request_options(config),
 		...{
 			'url': `https://sheets.googleapis.com/v4/spreadsheets/${sheet_id}?includeGridData=true`,
-			'json': true,
 			'headers': get_base_headers(config),
 		}
 	});
@@ -175,7 +191,6 @@ async function get_google_slides(slides_id, config) {
 		...get_base_request_options(config),
 		...{
 			'url': `https://slides.googleapis.com/v1/presentations/${slides_id}`,
-			'json': true,
 			'headers': get_base_headers(config),
 		}
 	});
@@ -190,8 +205,7 @@ async function get_drive_file_metadata(drive_id, config) {
 	const response = await request({
 		...get_base_request_options(config),
 		...{
-			'url': `https://www.googleapis.com/drive/v2/files/${drive_id}`,
-			'json': true,
+			'url': `https://www.googleapis.com/drive/v2/files/${drive_id}?supportsAllDrives=true`,
 			'headers': get_base_headers(config),
 		}
 	});
@@ -260,7 +274,6 @@ async function _get_folder_children(folder_id, page_token, config) {
 		...get_base_request_options(config),
 		...{
 			'url': `https://www.googleapis.com/drive/v2/files/${folder_id}/children`,
-			'json': true,
 			'headers': get_base_headers(config),
 			'qs': query_params,
 		}
@@ -386,7 +399,13 @@ async function get_drive_file_data(drive_id, config) {
 		return_data,
 		drive_id,
 		config
-	);
+	).catch((error) => {
+		if(error && error.error === 'RESPONSE_TOO_LARGE') {
+			console.log(`[WARNING] Drive file with ID ${drive_id} was not able to be crawled, file too large!`);
+			return null;
+		}
+		return Promise.reject(error);
+	});
 
 	return return_data;
 }
